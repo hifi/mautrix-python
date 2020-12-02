@@ -6,11 +6,8 @@
 from typing import Optional
 from enum import IntEnum
 
-from attr import dataclass
-import attr
-
 from mautrix.types import (UserID, DeviceID, IdentityKey, SigningKey, SerializableAttrs,
-                           ToDeviceEvent)
+                           ToDeviceEvent, field, dataclass)
 
 
 class TrustState(IntEnum):
@@ -43,4 +40,4 @@ class DecryptedOlmEvent(ToDeviceEvent, SerializableAttrs['EncryptedOlmEvent']):
     recipient: UserID
     recipient_keys: OlmEventKeys
     sender_device: Optional[DeviceID] = None
-    sender_key: IdentityKey = attr.ib(metadata={"hidden": True}, default=None)
+    sender_key: IdentityKey = field(hidden=True, default=None)

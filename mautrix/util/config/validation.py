@@ -26,7 +26,7 @@ class ForbiddenDefault:
     key: str
     value: Any
     error: Optional[str] = None
-    condition: Optional[str] = attr.ib(default=None, kw_only=True)
+    condition: Optional[str] = field(default=None, kw_only=True)
 
     def check(self, config: 'BaseConfig') -> bool:
         if self.condition and not config[self.condition]:

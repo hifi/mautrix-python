@@ -4,11 +4,9 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 from typing import Dict, List, Union
-from attr import dataclass
-import attr
 
 from ..primitive import JSON, RoomID, UserID
-from ..util import SerializableAttrs, Obj, deserializer
+from ..util import SerializableAttrs, Obj, deserializer, field, dataclass
 from .base import EventType, BaseEvent
 
 
@@ -19,7 +17,7 @@ class RoomTagInfo(SerializableAttrs['RoomTagInfo']):
 
 @dataclass
 class RoomTagAccountDataEventContent(SerializableAttrs['RoomTagAccountDataEventContent']):
-    tags: Dict[str, RoomTagInfo] = attr.ib(default=None, metadata={"json": "tags"})
+    tags: Dict[str, RoomTagInfo] = field(default=None, json="tags")
 
 
 DirectAccountDataEventContent = Dict[UserID, List[RoomID]]
@@ -39,7 +37,7 @@ class AccountDataEvent(BaseEvent, SerializableAttrs['AccountDataEvent']):
     content: AccountDataEventContent
 
     @classmethod
-    def deserialize(cls, data: JSON) -> 'AccountDataEvent':
+    def deserialize(cls, data: JSON) -> Union['AccountDataEvent', Obj]:
         try:
             data.get("content", {})["__mautrix_event_type"] = EventType.find(data.get("type"))
         except ValueError:

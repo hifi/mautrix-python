@@ -6,11 +6,8 @@
 from typing import List, NewType, NamedTuple, Dict
 from enum import Enum
 
-from attr import dataclass
-import attr
-
 from .primitive import RoomID, RoomAlias, SyncToken, ContentURI, UserID
-from .util import SerializableAttrs
+from .util import SerializableAttrs, field, dataclass
 from .event import Event
 
 DeviceLists = NamedTuple("DeviceLists", changed=List[UserID], left=List[UserID])
@@ -102,4 +99,4 @@ PaginatedMessages = NamedTuple("PaginatedMessages", start=SyncToken, end=SyncTok
 @dataclass
 class VersionsResponse(SerializableAttrs['VersionsResponse']):
     versions: List[str]
-    unstable_features: Dict[str, bool] = attr.ib(factory=lambda: {})
+    unstable_features: Dict[str, bool] = field(factory=lambda: {})

@@ -4,11 +4,9 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 from typing import Optional, List, Dict, Union
-from attr import dataclass
-import attr
 
 from ..primitive import JSON, UserID, EventID, ContentURI, RoomID, RoomAlias
-from ..util import SerializableEnum, SerializableAttrs, Obj, deserializer
+from ..util import SerializableEnum, SerializableAttrs, Obj, deserializer, field, dataclass
 from .base import BaseRoomEvent, BaseUnsigned, EventType
 from .encrypted import EncryptionAlgorithm
 
@@ -16,11 +14,10 @@ from .encrypted import EncryptionAlgorithm
 @dataclass
 class PowerLevelStateEventContent(SerializableAttrs['PowerLevelStateEventContent']):
     """The content of a power level event."""
-    users: Dict[UserID, int] = attr.ib(default=attr.Factory(dict), metadata={"omitempty": False})
+    users: Dict[UserID, int] = field(factory=lambda: {}, omitempty=False)
     users_default: int = 0
 
-    events: Dict[EventType, int] = attr.ib(default=attr.Factory(dict),
-                                           metadata={"omitempty": False})
+    events: Dict[EventType, int] = field(factory=lambda: {}, omitempty=False)
     events_default: int = 0
 
     state_default: int = 50
@@ -89,8 +86,8 @@ class AliasesStateEventContent(SerializableAttrs['AliasesStateEventContent']):
 
 @dataclass
 class CanonicalAliasStateEventContent(SerializableAttrs['CanonicalAliasStateEventContent']):
-    canonical_alias: RoomAlias = attr.ib(default=None, metadata={"json": "alias"})
-    alt_aliases: List[RoomAlias] = attr.ib(factory=lambda: [])
+    canonical_alias: RoomAlias = field(default=None, json="alias")
+    alt_aliases: List[RoomAlias] = field(factory=lambda: [])
 
 
 @dataclass
@@ -202,7 +199,7 @@ class StateEvent(BaseRoomEvent, SerializableAttrs['StateEvent']):
         return state_event_content_map.get(self.type, Obj)()
 
     @classmethod
-    def deserialize(cls, data: JSON) -> 'StateEvent':
+    def deserialize(cls, data: JSON) -> Union['StateEvent', Obj]:
         try:
             event_type = EventType.find(data.get("type"))
             data.get("content", {})["__mautrix_event_type"] = event_type

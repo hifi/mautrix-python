@@ -4,13 +4,11 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 from typing import Optional, Dict, Union, NewType
-from enum import IntEnum, Enum
-from attr import dataclass
-import attr
-import sys
+from enum import IntEnum
 
 from ..primitive import JSON, IdentityKey, SessionID, DeviceID
-from ..util import SerializableAttrs, Serializable, ExtensibleEnum, Obj, deserializer
+from ..util import (SerializableAttrs, Serializable, ExtensibleEnum, Obj, deserializer, field,
+                    dataclass)
 from .base import BaseRoomEvent, BaseUnsigned
 from .message import RelatesTo
 
@@ -26,8 +24,7 @@ class EncryptionKeyAlgorithm(ExtensibleEnum):
     SIGNED_CURVE25519: 'EncryptionKeyAlgorithm' = "signed_curve25519"
 
 
-# IntEnum had a bug in Python 3.6 where it broke when using mixins
-class OlmMsgType(Serializable, IntEnum if sys.version_info >= (3, 7) else Enum):
+class OlmMsgType(Serializable, IntEnum):
     PREKEY = 0
     MESSAGE = 1
 
@@ -59,7 +56,7 @@ class EncryptedMegolmEventContent(SerializableAttrs['EncryptedMegolmEventContent
     sender_key: IdentityKey
     device_id: DeviceID
     session_id: SessionID
-    _relates_to: Optional[RelatesTo] = attr.ib(default=None, metadata={"json": "m.relates_to"})
+    _relates_to: Optional[RelatesTo] = field(default=None, json="m.relates_to")
     algorithm: EncryptionAlgorithm = EncryptionAlgorithm.MEGOLM_V1
 
     @property
@@ -94,7 +91,7 @@ setattr(EncryptedEventContent, "deserialize", deserialize_encrypted)
 class EncryptedEvent(BaseRoomEvent, SerializableAttrs['EncryptedEvent']):
     """A m.room.encrypted event"""
     content: EncryptedEventContent
-    _unsigned: Optional[BaseUnsigned] = attr.ib(default=None, metadata={"json": "unsigned"})
+    _unsigned: Optional[BaseUnsigned] = field(default=None, json="unsigned")
 
     @property
     def unsigned(self) -> BaseUnsigned:

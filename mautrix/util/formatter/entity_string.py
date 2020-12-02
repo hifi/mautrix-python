@@ -49,7 +49,7 @@ class SimpleEntity(SemiAbstractEntity):
     type: EntityType
     offset: int
     length: int
-    extra_info: Dict[str, Any] = attr.ib(factory=dict)
+    extra_info: Dict[str, Any] = field(factory=dict)
 
     def copy(self) -> 'SimpleEntity':
         return attr.evolve(self)

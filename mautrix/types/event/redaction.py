@@ -4,10 +4,8 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 from typing import Optional
-from attr import dataclass
-import attr
 
-from ..util import SerializableAttrs
+from ..util import SerializableAttrs, field, dataclass
 from ..primitive import EventID
 from .base import BaseRoomEvent, BaseUnsigned
 
@@ -23,7 +21,7 @@ class RedactionEvent(BaseRoomEvent, SerializableAttrs['RedactionEvent']):
     """A m.room.redaction event"""
     content: RedactionEventContent
     redacts: EventID
-    _unsigned: Optional[BaseUnsigned] = attr.ib(default=None, metadata={"json": "unsigned"})
+    _unsigned: Optional[BaseUnsigned] = field(default=None, json="unsigned")
 
     @property
     def unsigned(self) -> BaseUnsigned:

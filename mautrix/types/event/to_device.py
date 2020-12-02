@@ -5,10 +5,7 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 from typing import Union, Optional, List
 
-from attr import dataclass
-import attr
-
-from ..util import SerializableAttrs, Obj, deserializer, ExtensibleEnum
+from ..util import SerializableAttrs, Obj, deserializer, ExtensibleEnum, field, dataclass
 from ..primitive import JSON, UserID, RoomID, SessionID, IdentityKey, SigningKey, DeviceID
 from .encrypted import EncryptionAlgorithm, EncryptedOlmEventContent
 from .base import EventType, BaseEvent
@@ -65,8 +62,8 @@ class RoomKeyRequestEventContent(SerializableAttrs['RoomKeyRequestEventContent']
 class ForwardedRoomKeyEventContent(RoomKeyEventContent,
                                    SerializableAttrs['ForwardedRoomKeyEventContent']):
     sender_key: IdentityKey
-    signing_key: SigningKey = attr.ib(metadata={"json": "sender_claimed_ed25519_key"})
-    forwarding_key_chain: List[str] = attr.ib(metadata={"json": "forwarding_curve25519_key_chain"})
+    signing_key: SigningKey = field(json="sender_claimed_ed25519_key")
+    forwarding_key_chain: List[str] = field(json="forwarding_curve25519_key_chain")
 
 
 ToDeviceEventContent = Union[Obj, EncryptedOlmEventContent, RoomKeyWithheldEventContent,

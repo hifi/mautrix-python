@@ -4,10 +4,8 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 from typing import Optional
-from attr import dataclass
-import attr
 
-from ..util import SerializableAttrs
+from ..util import SerializableAttrs, field, dataclass
 from .base import BaseRoomEvent, BaseUnsigned
 from .message import RelatesTo
 
@@ -15,7 +13,7 @@ from .message import RelatesTo
 @dataclass
 class ReactionEventContent(SerializableAttrs['ReactionEventContent']):
     """The content of an m.reaction event"""
-    _relates_to: Optional[RelatesTo] = attr.ib(default=None, metadata={"json": "m.relates_to"})
+    _relates_to: Optional[RelatesTo] = field(default=None, json="m.relates_to")
 
     @property
     def relates_to(self) -> RelatesTo:
@@ -32,7 +30,7 @@ class ReactionEventContent(SerializableAttrs['ReactionEventContent']):
 class ReactionEvent(BaseRoomEvent, SerializableAttrs['ReactionEvent']):
     """A m.reaction event"""
     content: ReactionEventContent
-    _unsigned: Optional[BaseUnsigned] = attr.ib(default=None, metadata={"json": "unsigned"})
+    _unsigned: Optional[BaseUnsigned] = field(default=None, json="unsigned")
 
     @property
     def unsigned(self) -> BaseUnsigned:

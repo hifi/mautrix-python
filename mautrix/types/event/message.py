@@ -7,10 +7,8 @@ from typing import Optional, Union, Pattern, Dict, Any, List
 from html import escape
 import re
 
-from attr import dataclass
-import attr
-
-from ..util import ExtensibleEnum, SerializableAttrs, Serializable, Obj, deserializer, no_value
+from ..util import (ExtensibleEnum, SerializableAttrs, Serializable, Obj, deserializer, no_value,
+                    field, dataclass)
 from ..primitive import JSON, ContentURI, EventID
 from .base import BaseRoomEvent, BaseUnsigned
 
@@ -85,7 +83,7 @@ class RelatesTo(Serializable):
     rel_type: RelationType = None
     event_id: Optional[EventID] = None
     key: Optional[str] = None
-    _extra: Dict[str, Any] = attr.ib(factory=lambda: {})
+    _extra: Dict[str, Any] = field(factory=lambda: {})
 
     def __bool__(self) -> bool:
         return bool(self.rel_type) and bool(self.event_id)
@@ -195,7 +193,7 @@ class BaseMessageEventContent(BaseMessageEventContentFuncs):
     body: str = ""
 
     external_url: str = None
-    _relates_to: Optional[RelatesTo] = attr.ib(default=None, metadata={"json": "m.relates_to"})
+    _relates_to: Optional[RelatesTo] = field(default=None, json="m.relates_to")
 
 
 # endregion
@@ -204,11 +202,11 @@ class BaseMessageEventContent(BaseMessageEventContentFuncs):
 
 @dataclass
 class JSONWebKey(SerializableAttrs['JSONWebKey']):
-    key: str = attr.ib(metadata={"json": "k"})
-    algorithm: str = attr.ib(default="A256CTR", metadata={"json": "alg"})
-    extractable: bool = attr.ib(default=True, metadata={"json": "ext"})
-    key_type: str = attr.ib(default="oct", metadata={"json": "kty"})
-    key_ops: List[str] = attr.ib(factory=lambda: ["encrypt", "decrypt"])
+    key: str = field(json="k")
+    algorithm: str = field(default="A256CTR", json="alg")
+    extractable: bool = field(default=True, json="ext")
+    key_type: str = field(default="oct", json="kty")
+    key_ops: List[str] = field(factory=lambda: ["encrypt", "decrypt"])
 
 
 @dataclass
@@ -217,7 +215,7 @@ class EncryptedFile(SerializableAttrs['EncryptedFile']):
     iv: str
     hashes: Dict[str, str]
     url: Optional[ContentURI] = None
-    version: str = attr.ib(default="v2", metadata={"json": "v"})
+    version: str = field(default="v2", json="v")
 
 
 @dataclass
@@ -229,8 +227,8 @@ class BaseFileInfo(SerializableAttrs['BaseFileInfo']):
 @dataclass
 class ThumbnailInfo(BaseFileInfo, SerializableAttrs['ThumbnailInfo']):
     """Information about the thumbnail for a document, video, image or location."""
-    height: int = attr.ib(default=None, metadata={"json": "h"})
-    width: int = attr.ib(default=None, metadata={"json": "w"})
+    height: int = field(default=None, json="h")
+    width: int = field(default=None, json="w")
     orientation: int = None
 
 
@@ -245,8 +243,8 @@ class FileInfo(BaseFileInfo, SerializableAttrs['FileInfo']):
 @dataclass
 class ImageInfo(FileInfo, SerializableAttrs['ImageInfo']):
     """Information about an image message."""
-    height: int = attr.ib(default=None, metadata={"json": "h"})
-    width: int = attr.ib(default=None, metadata={"json": "w"})
+    height: int = field(default=None, json="h")
+    width: int = field(default=None, json="w")
     orientation: int = None
 
 

@@ -4,11 +4,9 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 from typing import Union, Optional, List, NewType
-from attr import dataclass
-import attr
 
 from .primitive import UserID, DeviceID, JSON
-from .util import SerializableAttrs, ExtensibleEnum, deserializer, Obj
+from .util import SerializableAttrs, ExtensibleEnum, deserializer, Obj, field, dataclass
 
 
 class LoginType(ExtensibleEnum):
@@ -144,16 +142,16 @@ class DiscoveryIntegrationServer(SerializableAttrs['DiscoveryIntegrations']):
 
 @dataclass
 class DiscoveryIntegrations(SerializableAttrs['DiscoveryIntegrations']):
-    managers: List[DiscoveryIntegrationServer] = attr.ib(factory=lambda: [])
+    managers: List[DiscoveryIntegrationServer] = field(factory=lambda: [])
 
 
 @dataclass
 class DiscoveryInformation(SerializableAttrs['DiscoveryInformation']):
-    homeserver: Optional[DiscoveryServer] = attr.ib(metadata={"json": "m.homeserver"},
+    homeserver: Optional[DiscoveryServer] = field(json="m.homeserver",
                                                     factory=DiscoveryServer)
-    identity_server: Optional[DiscoveryServer] = attr.ib(metadata={"json": "m.identity_server"},
+    identity_server: Optional[DiscoveryServer] = field(json="m.identity_server",
                                                          factory=DiscoveryServer)
-    integrations: Optional[DiscoveryServer] = attr.ib(metadata={"json": "m.integrations"},
+    integrations: Optional[DiscoveryServer] = field(json="m.integrations",
                                                       factory=DiscoveryIntegrations)
 
 
@@ -168,4 +166,4 @@ class LoginResponse(SerializableAttrs['LoginResponse']):
     user_id: UserID
     device_id: DeviceID
     access_token: str
-    well_known: DiscoveryInformation = attr.ib(factory=DiscoveryInformation)
+    well_known: DiscoveryInformation = field(factory=DiscoveryInformation)
