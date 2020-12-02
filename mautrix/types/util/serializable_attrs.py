@@ -5,6 +5,7 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 from typing import Dict, Type, TypeVar, Any, Union, Optional, Tuple, Iterator, Callable, NewType
 from uuid import UUID
+import functools
 import attr
 import copy
 import sys
@@ -26,6 +27,48 @@ deserializer_map: Dict[Type[T], Deserializer] = {
 }
 
 no_value = object()
+
+META_JSON = "net.maunium.attrs.json.key"
+META_OMIT_EMPTY = "net.maunium.attrs.json.omit_empty"
+META_OMIT_DEFAULT = "net.maunium.attrs.json.omit_default"
+META_FLATTEN = "net.maunium.attrs.json.flatten"
+META_HIDDEN = "net.maunium.attrs.json.hidden"
+META_IGNORE_ERRORS = "net.maunium.attrs.json.ignore_errors"
+
+dataclass = functools.partial(attr.s, kw_only=True, auto_attribs=True)
+
+
+@functools.wraps(attr.ib)
+def field(
+    # Common default args for argument type hinting
+    default: Any = attr.NOTHING,
+    factory: Optional[Callable[[], Any]] = None,
+    metadata: Optional[Dict[str, Any]] = None,
+
+    # Serializable attrs fields
+    json: Optional[str] = None,
+    omitempty: bool = True,
+    omitdefault: bool = False,
+    flatten: bool = False,
+    hidden: bool = False,
+    ignore_errors: bool = False,
+
+    **kwargs
+) -> Any:
+    metadata = metadata or {}
+    if json:
+        metadata[META_JSON] = json
+    if not omitempty:
+        metadata[META_OMIT_EMPTY] = False
+    if omitdefault:
+        metadata[META_OMIT_DEFAULT] = True
+    if flatten:
+        metadata[META_FLATTEN] = True
+    if hidden:
+        metadata[META_HIDDEN] = True
+    if ignore_errors:
+        metadata[META_IGNORE_ERRORS] = True
+    return attr.ib(default=default, factory=factory, metadata=metadata, **kwargs)
 
 
 def serializer(elem_type: Type[T]) -> Callable[[Serializer], Serializer]:
@@ -79,9 +122,9 @@ def deserializer(elem_type: Type[T]) -> Callable[[Deserializer], Deserializer]:
 
 
 def _fields(attrs_type: Type[T], only_if_flatten: bool = None) -> Iterator[Tuple[str, Type[T2]]]:
-    return ((field.metadata.get("json", field.name), field) for field in attr.fields(attrs_type)
-            if only_if_flatten is None or field.metadata.get("flatten", False) == only_if_flatten
-            and not field.metadata.get("hidden", False))
+    return ((field.metadata.get(META_JSON, field.name), field) for field in attr.fields(attrs_type)
+            if only_if_flatten is None or field.metadata.get(META_FLATTEN, False) == only_if_flatten
+            and not field.metadata.get(META_HIDDEN, False))
 
 
 immutable = (int, str, float, bool, type(None))
@@ -99,7 +142,7 @@ def _dict_to_attrs(attrs_type: Type[T], data: JSON, default: Optional[T] = None,
     unrecognized = {}
     new_items = {field.name.lstrip("_"):
                      _try_deserialize(field.type, data, field.default,
-                                      field.metadata.get("ignore_errors", False))
+                                      field.metadata.get(META_IGNORE_ERRORS, False))
                  for _, field in _fields(attrs_type, only_if_flatten=True)}
     fields = dict(_fields(attrs_type, only_if_flatten=False))
     for key, value in data.items():
@@ -110,14 +153,14 @@ def _dict_to_attrs(attrs_type: Type[T], data: JSON, default: Optional[T] = None,
             continue
         name = field.name.lstrip("_")
         new_items[name] = _try_deserialize(field.type, value, field.default,
-                                           field.metadata.get("ignore_errors", False))
+                                           field.metadata.get(META_IGNORE_ERRORS, False))
     if len(new_items) == 0 and default_if_empty and default is not attr.NOTHING:
         return _safe_default(default)
     try:
         obj = attrs_type(**new_items)
     except TypeError as e:
         for key, field in _fields(attrs_type):
-            json_key = field.metadata.get("json", key)
+            json_key = field.metadata.get(META_JSON, key)
             if field.default is attr.NOTHING and json_key not in new_items:
                 raise SerializerError(
                     f"Missing value for required key {field.name} in {attrs_type.__name__}") from e
@@ -227,17 +270,17 @@ def _attrs_to_dict(data: T) -> JSON:
             continue
         field_val = getattr(data, field.name)
         if field_val is None:
-            if not field.metadata.get("omitempty", True):
+            if not field.metadata.get(META_OMIT_EMPTY, True):
                 field_val = field.default
             else:
                 continue
-        if field.metadata.get("omitdefault", False) and field_val == field.default:
+        if field.metadata.get(META_OMIT_DEFAULT, False) and field_val == field.default:
             continue
         try:
             serialized = serializer_map[_actual_type(field.type)](field_val)
         except KeyError:
             serialized = _serialize(field_val)
-        if field.metadata.get("flatten", False) and isinstance(serialized, dict):
+        if field.metadata.get(META_FLATTEN, False) and isinstance(serialized, dict):
             new_dict.update(serialized)
         elif serialized != no_value:
             new_dict[json_name] = serialized
